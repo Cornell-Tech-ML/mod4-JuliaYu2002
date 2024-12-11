@@ -40,3 +40,25 @@ def tile(input: Tensor, kernel: Tuple[int, int]) -> Tuple[Tensor, int, int]:
 
 
 # TODO: Implement for Task 4.3.
+def avgpool2d():
+    pass
+
+# TODO: 4.4
+
+def argmax():
+    pass
+
+def Max():
+    pass
+
+def max():
+    pass
+
+def softmax():
+    pass
+
+def logsoftmax():
+    pass
+
+def dropout():
+    pass

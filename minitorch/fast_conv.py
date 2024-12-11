@@ -224,7 +224,7 @@ def _tensor_conv2d(
         reverse (bool): anchor weight at top-left or bottom-right
 
     """
-    batch_, out_channels, _, _ = out_shape
+    batch_, out_channels, out_height, out_width = out_shape
     batch, in_channels, height, width = input_shape
     out_channels_, in_channels_, kh, kw = weight_shape
 
@@ -239,9 +239,27 @@ def _tensor_conv2d(
     # inners
     s10, s11, s12, s13 = s1[0], s1[1], s1[2], s1[3]
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
+    s30, s31, s32, s33 = out_strides
 
     # TODO: Implement for Task 4.2.
-    raise NotImplementedError("Need to implement for Task 4.2")
+    for depth in prange(batch_):  # Loop over batches
+        for oc in prange(out_channels):  # Loop over output channels
+            for oh in prange(out_height):  # Loop over output height
+                for ow in prange(out_width):  # Loop over output width
+                    for ic in range(in_channels_):  # Loop over input channels
+                        for kh_i in range(kh):  # Loop over kernel height
+                            for kw_i in range(kw):  # Loop over kernel width
+                                if reverse:
+                                    ih = oh - kh_i
+                                    iw = ow - kw_i
+                                else:
+                                    ih = oh + kh_i
+                                    iw = ow + kw_i
+                                if 0 <= ih < height and 0 <= iw < width:
+                                    in_dex = (depth * s10 + ic * s11 + ih * s12 + iw * s13)
+                                    weight_dex = (oc * s20 + ic * s21 + kh_i * s22 + kw_i * s23)
+                                    out_dex = (depth * s30 + oc * s31 + oh * s32 + ow * s33)
+                                    out[out_dex] += input[in_dex] * weight[weight_dex]
 
 
 tensor_conv2d = njit(_tensor_conv2d, parallel=True, fastmath=True)
@@ -275,6 +293,7 @@ class Conv2dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Backwards"""
         input, weight = ctx.saved_values
         batch, in_channels, h, w = input.shape
         out_channels, in_channels, kh, kw = weight.shape
