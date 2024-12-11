@@ -82,7 +82,7 @@ def _tensor_conv1d(
     batch, in_channels, width = input_shape
     out_channels_, in_channels_, kw = weight_shape
 
-    assert (
+    assert ( # must be the same size, also means that they have the same strides?
         batch == batch_
         and in_channels == in_channels_
         and out_channels == out_channels_
@@ -91,8 +91,28 @@ def _tensor_conv1d(
     s2 = weight_strides
 
     # TODO: Implement for Task 4.1.
-    raise NotImplementedError("Need to implement for Task 4.1")
-
+    # print(weight_shape)
+    # print(input_shape)
+    # print(out_shape)
+    # print(reverse)
+    for depth in prange(batch_): # loop over out depth
+        for row in prange(out_channels): # loop over out rows
+            for col in prange(out_width): # loop over out columns
+                for i in range(in_channels_): # loop over weight rows
+                    for j in range(kw): # loop weight cols
+                        in_width = col + j # current column of in position (is bounded by the number of columns in weight and the current column in the out)
+                        out_dex = (depth * out_strides[0]) + (row * out_strides[1]) + (col * out_strides[2])
+                        # weight_dex = (depth * s2[0]) + (i * s2[1]) + (j * s2[2])
+                        weight_dex = (row * s2[0]) + (i * s2[1]) + (j * s2[2])
+                        if not reverse:
+                            in_dex = (depth * s1[0]) + (i * s1[1]) + (in_width * s1[2]) # input index; current batch * in batch stride + current weight row * in row stride + current column * in col stride
+                        else:
+                            # in_dex = (depth * s1[0]) + (i * s1[1]) + (in_width * s1[2]) - (kw * s2[2])
+                            in_dex = (depth * s1[0]) + (i * s1[1]) + ((col - j) * s1[2])
+                        if in_dex < len(input):
+                            out[out_dex] += input[in_dex] * weight[weight_dex]
+                        else:
+                            out[out_dex] += 0 * weight[weight_dex]
 
 tensor_conv1d = njit(_tensor_conv1d, parallel=True)
 
@@ -127,6 +147,7 @@ class Conv1dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Backwards"""
         input, weight = ctx.saved_values
         batch, in_channels, w = input.shape
         out_channels, in_channels, kw = weight.shape
