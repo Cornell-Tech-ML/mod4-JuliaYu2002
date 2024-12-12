@@ -36,29 +36,41 @@ def tile(input: Tensor, kernel: Tuple[int, int]) -> Tuple[Tensor, int, int]:
     assert height % kh == 0
     assert width % kw == 0
     # TODO: Implement for Task 4.3.
-    raise NotImplementedError("Need to implement for Task 4.3")
+    new_height = height // kh
+    new_width = width // kw
+    first_view = input.contiguous().view(batch, channel, new_height, kh, new_width, kw)
+    permutation = first_view.permute(0, 1, 2, 4, 3, 5).contiguous()
+    re_view = permutation.view(batch, channel, new_height, new_width, kh * kw)
+    return (re_view, new_height, new_width)
 
 
 # TODO: Implement for Task 4.3.
-def avgpool2d():
-    pass
+def avgpool2d(input: Tensor, smaller: Tuple[int, int]) -> Tensor:
+    """Tiled average pooling 2D"""
+    new_tensor, new_height, new_width = tile(input, smaller)
+    batch, channel, height, width, _ = new_tensor.shape
+    meaned = new_tensor.mean(4)
+    return meaned.view(batch, channel, height, width)
 
 # TODO: 4.4
 
 def argmax():
     pass
 
-def Max():
+class Max(Function):
     pass
 
 def max():
     pass
 
-def softmax():
+def softmax(input: Tensor, dim: int) -> Tensor:
     pass
 
-def logsoftmax():
+def logsoftmax(input: Tensor, dim: int) -> Tensor:
     pass
 
-def dropout():
+def maxpool2d(input: Tensor, smaller: tuple[int, int]) -> Tensor:
+    pass
+
+def dropout(input: Tensor, dim: float, ignore: bool = False) -> Tensor:
     pass
