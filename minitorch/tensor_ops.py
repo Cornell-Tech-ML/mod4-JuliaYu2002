@@ -90,6 +90,7 @@ class TensorBackend:
         self.add_reduce = ops.reduce(operators.add, 0.0)
         self.mul_reduce = ops.reduce(operators.mul, 1.0)
         self.matrix_multiply = ops.matrix_multiply
+        self.redule_max = ops.reduce(operators.relu, 0.0)
         self.cuda = ops.cuda
 
 

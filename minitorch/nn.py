@@ -54,23 +54,48 @@ def avgpool2d(input: Tensor, smaller: Tuple[int, int]) -> Tensor:
 
 # TODO: 4.4
 
-def argmax():
-    pass
+def argmax(input: Tensor) -> Tensor:
+    """step(x) = x > 0 = argmax{0, x} :: get index of larger item"""
+    # if x > 0 -> step returns 1, else 0 :: step function
+
+    return max(input)
 
 class Max(Function):
-    pass
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Forward for finding max, use Relu"""
+        return t1.f.relu_map(t1)
 
-def max():
-    pass
+    @staticmethod
+    def backward(ctx: Context, d_output: float) -> Tensor:
+        """Backward for max"""
+        # compute argmax -> send gradient to argmax gradinput, everything else is 0
+        pass
+
+def max(input: Tensor) -> int:
+    max_val = input._tensor._storage[0]
+    for value in input._tensor._storage:
+        if value > max_val:
+            max_val = value
+    return max_val
 
 def softmax(input: Tensor, dim: int) -> Tensor:
-    pass
+    """Sigmoid(x) = softmax{0, x}"""
+    # exp(x) / sum of exp(x)s
+    expd = input.exp()
+    normalize = expd.sum()
+    # return input.sigmoid()
+    return expd / normalize
 
 def logsoftmax(input: Tensor, dim: int) -> Tensor:
-    pass
+    soft = softmax(input, dim)
+    return soft.log()
 
 def maxpool2d(input: Tensor, smaller: tuple[int, int]) -> Tensor:
-    pass
+    new_tensor, new_height, new_width = tile(input, smaller)
+    batch, channel, height, width, _ = new_tensor.shape
+    meaned = max(new_tensor)
+    return meaned.view(batch, channel, height, width)
 
 def dropout(input: Tensor, dim: float, ignore: bool = False) -> Tensor:
     pass
