@@ -22,6 +22,7 @@ Fn = TypeVar("Fn")
 
 
 def njit(fn: Fn, **kwargs: Any) -> Fn:
+    """Make things go speed"""
     return _njit(inline="always", **kwargs)(fn)  # type: ignore
 
 

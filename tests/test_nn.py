@@ -5,7 +5,7 @@ import minitorch
 from minitorch import Tensor
 
 from .strategies import assert_close
-from .tensor_strategies import tensors
+from .tensor_strategies import assert_close_tensor, tensors
 
 
 @pytest.mark.task4_3
@@ -32,7 +32,16 @@ def test_avg(t: Tensor) -> None:
 @given(tensors(shape=(2, 3, 4)))
 def test_max(t: Tensor) -> None:
     # TODO: Implement for Task 4.4.
-    raise NotImplementedError("Need to implement for Task 4.4")
+    out = minitorch.max(t, 1)
+    # check if correct value is found from max
+    max_val = out._tensor._storage[0]
+    for value in out._tensor._storage:
+        if value > max_val:
+            max_val = value
+    assert_close(
+        max_val , max([minitorch.max_reduce(t, 1)[k, i, j] for k in range(2) for i in range(1) for j in range(4)])
+    )
+    # minitorch.grad_check(minitorch.max, t, t._ensure_tensor(1))
 
 
 @pytest.mark.task4_4
