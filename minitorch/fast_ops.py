@@ -173,7 +173,11 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        if (len(out_strides) != len(in_strides) or (out_strides != in_strides).any() or (out_shape != in_shape).any()):
+        if (
+            len(out_strides) != len(in_strides)
+            or (out_strides != in_strides).any()
+            or (out_shape != in_shape).any()
+        ):
             for i in prange(len(out)):
                 out_index: Index = np.empty(MAX_DIMS, np.int32)
                 in_index: Index = np.empty(MAX_DIMS, np.int32)
@@ -224,7 +228,14 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        if (len(out_strides) != len(a_strides) or len(out_strides) != len(b_strides) or (out_strides != a_strides).any() or (out_strides != b_strides).any() or (out_shape != a_shape).any() or (out_shape != b_shape).any()):
+        if (
+            len(out_strides) != len(a_strides)
+            or len(out_strides) != len(b_strides)
+            or (out_strides != a_strides).any()
+            or (out_strides != b_strides).any()
+            or (out_shape != a_shape).any()
+            or (out_shape != b_shape).any()
+        ):
             for i in prange(len(out)):
                 out_index: Index = np.empty(MAX_DIMS, np.int32)
                 a_index: Index = np.empty(MAX_DIMS, np.int32)
@@ -352,7 +363,9 @@ def _tensor_matrix_multiply(
                     acc += a_storage[a_inner] * b_storage[b_inner]
                     a_inner += a_strides[2]
                     b_inner += b_strides[1]
-                out_position = (i1 * out_strides[0] + i2 * out_strides[1] + i3 * out_strides[2])
+                out_position = (
+                    i1 * out_strides[0] + i2 * out_strides[1] + i3 * out_strides[2]
+                )
                 out[out_position] = acc
 
 

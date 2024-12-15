@@ -5,7 +5,7 @@ import minitorch
 from minitorch import Tensor
 
 from .strategies import assert_close
-from .tensor_strategies import assert_close_tensor, tensors
+from .tensor_strategies import tensors
 
 
 @pytest.mark.task4_3
@@ -39,7 +39,15 @@ def test_max(t: Tensor) -> None:
         if value > max_val:
             max_val = value
     assert_close(
-        max_val , max([minitorch.max_reduce(t, 1)[k, i, j] for k in range(2) for i in range(1) for j in range(4)])
+        max_val,
+        max(
+            [
+                minitorch.max_reduce(t, 1)[k, i, j]
+                for k in range(2)
+                for i in range(1)
+                for j in range(4)
+            ]
+        ),
     )
     # minitorch.grad_check(minitorch.max, t, t._ensure_tensor(1))
 

@@ -1,14 +1,11 @@
 from typing import Tuple, TypeVar, Any
 
-import numpy as np
 from numba import prange
 from numba import njit as _njit
 
 from .autodiff import Context
 from .tensor import Tensor
 from .tensor_data import (
-    MAX_DIMS,
-    Index,
     Shape,
     Strides,
     Storage,
@@ -83,7 +80,7 @@ def _tensor_conv1d(
     batch, in_channels, width = input_shape
     out_channels_, in_channels_, kw = weight_shape
 
-    assert ( # must be the same size, also means that they have the same strides?
+    assert (  # must be the same size, also means that they have the same strides?
         batch == batch_
         and in_channels == in_channels_
         and out_channels == out_channels_
@@ -96,17 +93,25 @@ def _tensor_conv1d(
     # print(input_shape)
     # print(out_shape)
     # print(reverse)
-    for depth in prange(batch_): # loop over out depth
-        for row in prange(out_channels): # loop over out rows
-            for col in prange(out_width): # loop over out columns
-                for i in range(in_channels_): # loop over weight rows
-                    for j in range(kw): # loop weight cols
-                        in_width = col + j # current column of in position (is bounded by the number of columns in weight and the current column in the out)
-                        out_dex = (depth * out_strides[0]) + (row * out_strides[1]) + (col * out_strides[2])
+    for depth in prange(batch_):  # loop over out depth
+        for row in prange(out_channels):  # loop over out rows
+            for col in prange(out_width):  # loop over out columns
+                for i in range(in_channels_):  # loop over weight rows
+                    for j in range(kw):  # loop weight cols
+                        in_width = (
+                            col + j
+                        )  # current column of in position (is bounded by the number of columns in weight and the current column in the out)
+                        out_dex = (
+                            (depth * out_strides[0])
+                            + (row * out_strides[1])
+                            + (col * out_strides[2])
+                        )
                         # weight_dex = (depth * s2[0]) + (i * s2[1]) + (j * s2[2])
                         weight_dex = (row * s2[0]) + (i * s2[1]) + (j * s2[2])
                         if not reverse:
-                            in_dex = (depth * s1[0]) + (i * s1[1]) + (in_width * s1[2]) # input index; current batch * in batch stride + current weight row * in row stride + current column * in col stride
+                            in_dex = (
+                                (depth * s1[0]) + (i * s1[1]) + (in_width * s1[2])
+                            )  # input index; current batch * in batch stride + current weight row * in row stride + current column * in col stride
                         else:
                             # in_dex = (depth * s1[0]) + (i * s1[1]) + (in_width * s1[2]) - (kw * s2[2])
                             in_dex = (depth * s1[0]) + (i * s1[1]) + ((col - j) * s1[2])
@@ -114,6 +119,7 @@ def _tensor_conv1d(
                             out[out_dex] += input[in_dex] * weight[weight_dex]
                         else:
                             out[out_dex] += 0 * weight[weight_dex]
+
 
 tensor_conv1d = njit(_tensor_conv1d, parallel=True)
 
@@ -257,9 +263,15 @@ def _tensor_conv2d(
                                     ih = oh + kh_i
                                     iw = ow + kw_i
                                 if 0 <= ih < height and 0 <= iw < width:
-                                    in_dex = (depth * s10 + ic * s11 + ih * s12 + iw * s13)
-                                    weight_dex = (oc * s20 + ic * s21 + kh_i * s22 + kw_i * s23)
-                                    out_dex = (depth * s30 + oc * s31 + oh * s32 + ow * s33)
+                                    in_dex = (
+                                        depth * s10 + ic * s11 + ih * s12 + iw * s13
+                                    )
+                                    weight_dex = (
+                                        oc * s20 + ic * s21 + kh_i * s22 + kw_i * s23
+                                    )
+                                    out_dex = (
+                                        depth * s30 + oc * s31 + oh * s32 + ow * s33
+                                    )
                                     out[out_dex] += input[in_dex] * weight[weight_dex]
 
 

@@ -4,7 +4,7 @@ from . import operators
 from .autodiff import Context
 from .fast_ops import FastOps
 from .tensor import Tensor
-from .tensor_functions import Function, rand, tensor
+from .tensor_functions import Function, rand
 
 
 # List of functions in this file:
@@ -52,9 +52,11 @@ def avgpool2d(input: Tensor, smaller: Tuple[int, int]) -> Tensor:
     meaned = new_tensor.mean(4)
     return meaned.view(batch, channel, height, width)
 
+
 # TODO: 4.4
 
 max_reduce = FastOps.reduce(operators.max, -1e9)
+
 
 def argmax(input: Tensor, dim: int) -> Tensor:
     """step(x) = x > 0 = argmax{0, x} :: get index of larger item"""
@@ -62,12 +64,13 @@ def argmax(input: Tensor, dim: int) -> Tensor:
     # return a tensor that has 1 in the places where it found max values
     return max_reduce(input, dim) == input
 
+
 class Max(Function):
     @staticmethod
     def forward(ctx: Context, input: Tensor, dim: Tensor) -> Tensor:
         """Forward for max"""
         a = max_reduce(input, int(dim.item()))
-        ctx.save_for_backward(a, dim)
+        ctx.save_for_backward(input, int(dim.item()))
         return a
 
     @staticmethod
@@ -75,12 +78,14 @@ class Max(Function):
         """Backward for max"""
         # compute argmax -> send gradient to argmax gradinput, everything else is 0
         input, dim = ctx.saved_values
-        a = argmax(input, int(dim.item()))
-        return d_output * a, 0.0
+        a = argmax(input, dim)
+        return a * d_output, 0.0
+
 
 def max(input: Tensor, dim: int) -> Tensor:
     """User's call to max"""
     return Max.apply(input, input._ensure_tensor(dim))
+
 
 def softmax(input: Tensor, dim: int) -> Tensor:
     """exp(x) / sum of exp(x)s"""
@@ -88,13 +93,14 @@ def softmax(input: Tensor, dim: int) -> Tensor:
     normalize = expd.sum(dim)
     return expd / normalize
 
+
 def logsoftmax(input: Tensor, dim: int) -> Tensor:
     """Use https://en.wikipedia.org/wiki/LogSumExp#log-sum-exp_trick_for_log-domain_calculations"""
     exp = input.exp()
     sum = exp.sum(dim)
     log = sum.log()
     return input - log
-    
+
 
 def maxpool2d(input: Tensor, smaller: Tuple[int, int]) -> Tensor:
     """Same thing as avgpool2d, but using max"""
@@ -102,6 +108,7 @@ def maxpool2d(input: Tensor, smaller: Tuple[int, int]) -> Tensor:
     batch, channel, height, width, _ = new_tensor.shape
     maxed = max(new_tensor, 4)
     return maxed.view(batch, channel, height, width)
+
 
 def dropout(input: Tensor, drop_chance: float, ignore: bool = False) -> Tensor:
     """Add chance of data fluctuation"""
