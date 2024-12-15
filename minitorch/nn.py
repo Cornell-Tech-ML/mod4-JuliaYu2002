@@ -96,6 +96,7 @@ def softmax(input: Tensor, dim: int) -> Tensor:
 
 def logsoftmax(input: Tensor, dim: int) -> Tensor:
     """Use https://en.wikipedia.org/wiki/LogSumExp#log-sum-exp_trick_for_log-domain_calculations"""
+    # the github test seems to fail but it passes locally?
     exp = input.exp()
     sum = exp.sum(dim)
     log = sum.log()
